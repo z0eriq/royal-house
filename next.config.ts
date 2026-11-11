@@ -4,6 +4,8 @@ const nextConfig: NextConfig = {
   agentRules: false,
   poweredByHeader: false,
   images: {
+    // This Vercel account rejects the image optimizer (402), so serve the files directly.
+    unoptimized: true,
     formats: ["image/avif", "image/webp"],
   },
   async headers() {
