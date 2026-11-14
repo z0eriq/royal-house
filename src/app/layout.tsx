@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Amiri, Tajawal } from "next/font/google";
 import { JsonLd } from "@/components/JsonLd";
+import { MetaPixel } from "@/components/MetaPixel";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { WhatsAppFloat } from "@/components/WhatsAppFloat";
@@ -64,6 +65,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="ar" dir="rtl" data-scroll-behavior="smooth" className={`${amiri.variable} ${tajawal.variable}`}>
       <body className="bg-ivory font-sans text-ink antialiased">
+        <MetaPixel />
         <a href="#content" className="skip-link">
           تخطي إلى المحتوى
         </a>

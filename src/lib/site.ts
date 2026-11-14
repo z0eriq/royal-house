@@ -29,6 +29,8 @@ export const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:30
   "",
 );
 
+export const metaPixelId = "3059870334350963";
+
 export const mapsSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(site.mapsQuery)}`;
 
 export const mapsEmbedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(site.mapsQuery)}&z=14&hl=ar&output=embed`;
