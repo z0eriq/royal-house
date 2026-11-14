@@ -4,7 +4,7 @@ import { PageHero } from "@/components/PageHero";
 import { ProductCard } from "@/components/ProductCard";
 import { Container } from "@/components/Section";
 import { firstParam } from "@/lib/params";
-import { categories, filterProducts, getCategory, modelsLabel } from "@/lib/products";
+import { filterProducts, getCategory, listCategories, modelsLabel } from "@/lib/products";
 import { imageNote } from "@/lib/site";
 
 type ProductsPageProps = {
@@ -12,7 +12,7 @@ type ProductsPageProps = {
 };
 
 export async function generateMetadata({ searchParams }: ProductsPageProps): Promise<Metadata> {
-  const category = getCategory(firstParam((await searchParams).category));
+  const category = await getCategory(firstParam((await searchParams).category));
   if (!category) {
     return {
       title: "الأنواع",
@@ -30,9 +30,10 @@ export async function generateMetadata({ searchParams }: ProductsPageProps): Pro
 
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
   const selectedSlug = firstParam((await searchParams).category);
-  const selected = getCategory(selectedSlug);
+  const [selected, categories] = await Promise.all([getCategory(selectedSlug), listCategories()]);
   const invalidFilter = Boolean(selectedSlug) && !selected;
-  const list = invalidFilter ? [] : filterProducts(selected?.slug);
+  const items = invalidFilter ? [] : await filterProducts(selected?.slug);
+  const categoryNames = new Map(categories.map((category) => [category.slug, category.name]));
 
   return (
     <>
@@ -79,18 +80,18 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         ) : (
           <>
             <p className="mt-8 text-sm text-muted">
-              {modelsLabel(list.length)}
+              {modelsLabel(items.length)}
               {selected ? ` ضمن ${selected.name}` : ""}. {imageNote}
             </p>
-            {list.length === 0 ? (
+            {items.length === 0 ? (
               <p className="mt-6 text-base leading-8 text-muted">
                 لا توجد نماذج ضمن هذا النوع حالياً. أرسل المقاس على واتساب ونرتب الطلب.
               </p>
             ) : (
               <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {list.map((product) => (
+                {items.map((product) => (
                   <li key={product.slug}>
-                    <ProductCard product={product} />
+                    <ProductCard product={product} categoryName={categoryNames.get(product.category)} />
                   </li>
                 ))}
               </ul>

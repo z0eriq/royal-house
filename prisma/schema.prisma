@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Category {
+  id            String    @id @default(cuid())
+  slug          String    @unique
+  name          String
+  blurb         String
+  description   String
+  image         String
+  imageAlt      String
+  imagePosition String    @default("center")
+  sortOrder     Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  products      Product[]
+}
+
+model Product {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  name          String
+  categorySlug  String
+  category      Category @relation(fields: [categorySlug], references: [slug], onDelete: Restrict, onUpdate: Cascade)
+  summary       String
+  description   String
+  details       Json
+  image         String
+  imageAlt      String
+  imagePosition String   @default("center")
+  featured      Boolean  @default(false)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([categorySlug])
+  @@index([featured])
+}
+
+model SiteSettings {
+  id                 Int      @id @default(1)
+  phoneDisplay       String
+  phoneInternational String
+  phoneHref          String
+  phoneE164          String
+  whatsappNumber     String
+  city               String
+  area               String
+  street             String
+  addressLine        String
+  mapsQuery          String
+  updatedAt          DateTime @updatedAt
+}

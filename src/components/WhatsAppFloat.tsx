@@ -1,10 +1,10 @@
 import { generalInquiry } from "@/lib/site";
 import { whatsappHref } from "@/lib/whatsapp";
 
-export function WhatsAppFloat() {
+export function WhatsAppFloat({ whatsappNumber }: { whatsappNumber: string }) {
   return (
     <a
-      href={whatsappHref(generalInquiry)}
+      href={whatsappHref(generalInquiry, whatsappNumber)}
       target="_blank"
       rel="noopener noreferrer"
       className="fixed bottom-4 left-4 z-40 inline-flex min-h-12 items-center gap-2 bg-burgundy px-4 text-sm font-medium text-paper shadow-[0_12px_30px_-16px_rgba(34,28,22,0.8)] md:hidden"

@@ -2,15 +2,10 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { firstParam } from "./params.ts";
 import { isPhoneNumber } from "./phone.ts";
-import {
-  categories,
-  filterProducts,
-  getCategory,
-  getProduct,
-  modelsLabel,
-  products,
-} from "./products.ts";
+import { modelsLabel } from "./products.ts";
 import { localBusinessSchema } from "./schema.ts";
+import { seedCategories, seedProducts } from "./seed-catalog.ts";
+import { seedSiteSettings } from "./seed-site.ts";
 import { orderMessage, whatsappHref } from "./whatsapp.ts";
 
 test("builds a WhatsApp link and leaves an empty message without text", () => {
@@ -45,20 +40,16 @@ test("accepts Iraqi local and Arabic-Indic phone numbers", () => {
 });
 
 test("catalog slugs and categories stay consistent", () => {
-  const slugs = products.map((product) => product.slug);
+  const slugs = seedProducts.map((product) => product.slug);
   assert.equal(new Set(slugs).size, slugs.length);
-  const names = products.map((product) => product.name);
+  const names = seedProducts.map((product) => product.name);
   assert.equal(new Set(names).size, names.length);
 
-  for (const product of products) {
-    assert.ok(getCategory(product.category));
-    assert.equal(getProduct(product.slug)?.name, product.name);
+  for (const product of seedProducts) {
+    assert.ok(seedCategories.some((category) => category.slug === product.category));
   }
 
-  assert.equal(filterProducts(undefined).length, products.length);
-  assert.equal(filterProducts("sofas").every((product) => product.category === "sofas"), true);
-  assert.equal(filterProducts("missing").length, 0);
-  assert.equal(getProduct("missing"), undefined);
+  assert.equal(seedProducts.filter((product) => product.category === "sofas").length > 0, true);
 });
 
 test("Arabic model counts use the right plural", () => {
@@ -76,10 +67,10 @@ test("first query parameter ignores blanks", () => {
 });
 
 test("business schema includes the workshop phone and every category", () => {
-  const json = JSON.stringify(localBusinessSchema());
+  const json = JSON.stringify(localBusinessSchema(seedCategories, seedSiteSettings));
   assert.match(json, /\+9647808771427/);
   assert.match(json, /بداية الحولي، خلف حلويات أحمد الياسري/);
-  for (const category of categories) {
+  for (const category of seedCategories) {
     assert.equal(json.includes(category.name), true);
   }
 });

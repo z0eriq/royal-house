@@ -1,24 +1,24 @@
-import { categories, getCategory, type Product } from "./products.ts";
-import { site, siteUrl } from "./site.ts";
+import type { Category, ContactSettings, Product } from "./catalog-types.ts";
+import { siteBrand, siteUrl } from "./site.ts";
 
-export function localBusinessSchema() {
+export function localBusinessSchema(categories: readonly Category[], contact: ContactSettings) {
   return {
     "@context": "https://schema.org",
     "@type": "FurnitureStore",
-    name: site.name,
-    alternateName: site.nameEn,
-    description: site.description,
-    telephone: site.phoneE164,
+    name: siteBrand.name,
+    alternateName: siteBrand.nameEn,
+    description: siteBrand.description,
+    telephone: contact.phoneE164,
     image: new URL("/images/hero.jpg", siteUrl).toString(),
     url: siteUrl,
     address: {
       "@type": "PostalAddress",
-      streetAddress: site.street,
-      addressLocality: site.area,
-      addressRegion: site.city,
+      streetAddress: contact.street,
+      addressLocality: contact.area,
+      addressRegion: contact.city,
       addressCountry: "IQ",
     },
-    areaServed: site.city,
+    areaServed: contact.city,
     currenciesAccepted: "IQD",
     inLanguage: "ar",
     hasOfferCatalog: {
@@ -37,18 +37,17 @@ export function localBusinessSchema() {
   };
 }
 
-export function productSchema(product: Product) {
-  const category = getCategory(product.category);
+export function productSchema(product: Product, categoryName?: string) {
   return {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
     description: product.description,
     image: new URL(product.image, siteUrl).toString(),
-    category: category?.name,
+    category: categoryName,
     brand: {
       "@type": "Brand",
-      name: site.name,
+      name: siteBrand.name,
     },
     url: new URL(`/products/${product.slug}`, siteUrl).toString(),
   };

@@ -5,8 +5,8 @@ function clean(value: string, fallback: string): string {
   return normalized.length > 0 ? normalized : fallback;
 }
 
-export function whatsappHref(message: string): string {
-  const base = `https://wa.me/${site.whatsappNumber}`;
+export function whatsappHref(message: string, whatsappNumber: string = site.whatsappNumber): string {
+  const base = `https://wa.me/${whatsappNumber}`;
   const trimmed = message.trim();
   if (!trimmed) return base;
   return `${base}?text=${encodeURIComponent(trimmed)}`;

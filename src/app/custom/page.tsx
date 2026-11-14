@@ -3,7 +3,8 @@ import { OrderForm } from "@/components/OrderForm";
 import { PageHero } from "@/components/PageHero";
 import { Container } from "@/components/Section";
 import { firstParam } from "@/lib/params";
-import { categories, getProduct, products } from "@/lib/products";
+import { getProduct, listCategories, listProducts } from "@/lib/products";
+import { getContactSettings } from "@/lib/site";
 
 type CustomPageProps = {
   searchParams: Promise<{ item?: string | string[] }>;
@@ -36,7 +37,13 @@ const measures = [
 
 export default async function CustomPage({ searchParams }: CustomPageProps) {
   const item = firstParam((await searchParams).item);
-  const defaultItem = getProduct(item ?? "")?.name ?? "ديوان حسب الطلب";
+  const [categories, products, contact, selected] = await Promise.all([
+    listCategories(),
+    listProducts(),
+    getContactSettings(),
+    getProduct(item ?? ""),
+  ]);
+  const defaultItem = selected?.name ?? "ديوان حسب الطلب";
   const groups = categories.map((category) => ({
     label: category.name,
     items: products.filter((product) => product.category === category.slug).map((product) => product.name),
@@ -61,7 +68,12 @@ export default async function CustomPage({ searchParams }: CustomPageProps) {
             ))}
           </ul>
         </div>
-        <OrderForm key={defaultItem} groups={groups} defaultItem={defaultItem} />
+        <OrderForm
+          key={defaultItem}
+          groups={groups}
+          defaultItem={defaultItem}
+          whatsappNumber={contact.whatsappNumber}
+        />
       </Container>
     </>
   );

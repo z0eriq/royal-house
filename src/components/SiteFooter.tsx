@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { imageNote, navLinks, priceNote, site } from "@/lib/site";
+import type { ContactSettings } from "@/lib/catalog-types";
+import { imageNote, navLinks, priceNote } from "@/lib/site";
 
-export function SiteFooter() {
+export function SiteFooter({ contact }: { contact: ContactSettings }) {
   const year = new Date().getFullYear();
 
   return (
@@ -27,9 +28,9 @@ export function SiteFooter() {
         </nav>
         <address className="not-italic">
           <p className="text-sm font-medium text-paper">المعمل</p>
-          <p className="mt-3 text-sm leading-7">{site.addressLine}</p>
-          <a href={site.phoneHref} dir="ltr" className="mt-3 inline-flex min-h-11 items-center text-sm text-paper">
-            {site.phoneInternational}
+          <p className="mt-3 text-sm leading-7">{contact.addressLine}</p>
+          <a href={contact.phoneHref} dir="ltr" className="mt-3 inline-flex min-h-11 items-center text-sm text-paper">
+            {contact.phoneInternational}
           </a>
         </address>
       </div>

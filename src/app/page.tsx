@@ -6,8 +6,8 @@ import { ProductCard } from "@/components/ProductCard";
 import { Container, SectionHeading } from "@/components/Section";
 import { inverseButtonClass, primaryButtonClass, secondaryButtonClass } from "@/components/styles";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
-import { getFeaturedProducts } from "@/lib/products";
-import { generalInquiry, mapsSearchUrl, site } from "@/lib/site";
+import { getFeaturedProducts, listCategories } from "@/lib/products";
+import { generalInquiry, getContactSettings, mapsSearchUrlFrom } from "@/lib/site";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -32,8 +32,13 @@ const steps = [
   },
 ];
 
-export default function HomePage() {
-  const featured = getFeaturedProducts();
+export default async function HomePage() {
+  const [featured, categories, contact] = await Promise.all([
+    getFeaturedProducts(),
+    listCategories(),
+    getContactSettings(),
+  ]);
+  const categoryNames = new Map(categories.map((category) => [category.slug, category.name]));
 
   return (
     <>
@@ -49,7 +54,11 @@ export default function HomePage() {
               رويال هاوس معمل في طويرج. نفصّل القنفات، الكراسي، الديوان حسب الطلب، كرسي الحديد، وتخم القنفات. تشوف الخامة واللون، والقطعة تُنفذ بعد الاتفاق.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <WhatsAppLink message={generalInquiry} className={primaryButtonClass}>
+              <WhatsAppLink
+                message={generalInquiry}
+                whatsappNumber={contact.whatsappNumber}
+                className={primaryButtonClass}
+              >
                 اطلب على واتساب
               </WhatsAppLink>
               <Link href="/products" className={secondaryButtonClass}>
@@ -101,7 +110,7 @@ export default function HomePage() {
             text="اختر النوع، وبعدها نثبت المقاس والخامة. ما نعرض عدداً في المخزون، لأن الشغل على الطلب."
           />
           <div className="mt-10">
-            <CategoryMosaic />
+            <CategoryMosaic categories={categories} />
           </div>
         </Container>
       </section>
@@ -137,7 +146,7 @@ export default function HomePage() {
           <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {featured.map((product) => (
               <li key={product.slug}>
-                <ProductCard product={product} />
+                <ProductCard product={product} categoryName={categoryNames.get(product.category)} />
               </li>
             ))}
           </ul>
@@ -159,7 +168,11 @@ export default function HomePage() {
             <Link href="/custom" className="inline-flex min-h-11 items-center justify-center bg-paper px-5 text-sm font-medium text-ink">
               نموذج الطلب
             </Link>
-            <WhatsAppLink message={generalInquiry} className={inverseButtonClass}>
+            <WhatsAppLink
+              message={generalInquiry}
+              whatsappNumber={contact.whatsappNumber}
+              className={inverseButtonClass}
+            >
               واتساب مباشر
             </WhatsAppLink>
           </div>
@@ -176,11 +189,16 @@ export default function HomePage() {
               text="العنوان في بداية الحولي بطويرج. راسلنا قبل ما تجي حتى نكون بالمعمل، وتقدر تجيب مقاس الغرفة أو صورة المكان."
             />
             <div className="mt-8 flex flex-wrap gap-3">
-              <a href={site.phoneHref} className={primaryButtonClass}>
+              <a href={contact.phoneHref} className={primaryButtonClass}>
                 <span>اتصال</span>
-                <span dir="ltr">{site.phoneDisplay}</span>
+                <span dir="ltr">{contact.phoneDisplay}</span>
               </a>
-              <a href={mapsSearchUrl} target="_blank" rel="noopener noreferrer" className={secondaryButtonClass}>
+              <a
+                href={mapsSearchUrlFrom(contact.mapsQuery)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={secondaryButtonClass}
+              >
                 فتح العنوان في الخريطة
               </a>
             </div>
@@ -188,9 +206,9 @@ export default function HomePage() {
           <address className="not-italic border border-line bg-paper p-6 leading-8">
             <p className="text-sm text-copper-deep">العنوان</p>
             <p className="mt-2 font-display text-3xl text-ink">
-              {site.city}، {site.area}
+              {contact.city}، {contact.area}
             </p>
-            <p className="mt-3 text-muted">{site.street}</p>
+            <p className="mt-3 text-muted">{contact.street}</p>
             <p className="mt-6 text-sm text-muted">
               الخريطة تفتح بحثاً عن هذا العنوان. الدلالة الأدق هي خلف حلويات أحمد الياسري، بداية الحولي.
             </p>

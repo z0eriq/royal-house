@@ -1,201 +1,124 @@
-/**
- * كتالوج رويال هاوس.
- * الصور توضيحية للطراز، وليست صوراً لقطع المعمل.
- * السعر غير مثبت لأن المعمل يسعّر بعد المقاس والخامة.
- */
+import { cache } from "react";
+import {
+  asImagePosition,
+  asStringDetails,
+  type Category,
+  type ImagePosition,
+  type Product,
+} from "./catalog-types.ts";
+import { prisma } from "./db.ts";
+import { seedCategories, seedProducts } from "./seed-catalog.ts";
 
-export type ImagePosition = "center" | "top" | "bottom";
+export type { Category, ImagePosition, Product };
+export type CategorySlug = string;
 
-export const categories = [
-  {
-    slug: "sofas",
-    name: "قنفات",
-    blurb: "مقعدان، ثلاثة، أو زاوية على شكل الصالة.",
-    description:
-      "قنفات للجلوس اليومي. نحدد عدد المقاعد والعرض والعمق، وتختار القماش أو الجلد واللون قبل التنفيذ. الزاوية تُفصَّل على ضلعين إذا الغرفة تحتاجها.",
-    image: "/images/sofas.jpg",
-    imageAlt: "قنفة مخمل أخضر، صورة توضيحية للطراز",
-    imagePosition: "center",
-  },
-  {
-    slug: "chairs",
-    name: "كراسي",
-    blurb: "استقبال أو سفرة، بالمقاس والظهر المناسب.",
-    description: "كراسي استقبال وكراسي سفرة. التنجيد والخشب وارتفاع الظهر نتفق عليها قبل الشغل.",
-    image: "/images/chairs.jpg",
-    imageAlt: "كرسي استقبال منجد بلون فاتح، صورة توضيحية للطراز",
-    imagePosition: "center",
-  },
-  {
-    slug: "custom-divan",
-    name: "ديوان حسب الطلب",
-    blurb: "يُفصَّل بالمتر على الجدار أو المجلس.",
-    description:
-      "ديوان عربي يُفصَّل على طول المكان. المخاد والعمق والارتفاع حسب المجلس، وليس مقاساً جاهزاً مفروضاً.",
-    image: "/images/divan-majlis.jpg",
-    imageAlt: "جلسة جلد داخل غرفة، صورة توضيحية لطراز الديوان",
-    imagePosition: "center",
-  },
-  {
-    slug: "iron-chairs",
-    name: "كرسي حديد",
-    blurb: "هيكل حديد للحديقة والجلسة الخارجية.",
-    description:
-      "كراسي بهيكل حديد للخارج أو للجلسات المكشوفة. نجهزه كرسياً مفرداً أو طقماً. تحدد العدد، لون الحديد، ونوع القاعدة: خشب أو تنجيد.",
-    image: "/images/wire-chairs.jpg",
-    imageAlt: "كراسي بهيكل معدني، صورة توضيحية للطراز",
-    imagePosition: "bottom",
-  },
-  {
-    slug: "sofa-sets",
-    name: "تخم قنفات",
-    blurb: "طقم جلسة كامل بقماش واحد.",
-    description:
-      "تخم القنفات يعني طقم الجلسة: القنفة والقطع المكملة لها. نوحد القماش واللون، وعدد القطع يتبع حجم الصالة.",
-    image: "/images/sectional.jpg",
-    imageAlt: "قنفة وكرسي في غرفة جلوس، صورة توضيحية لطراز التخم",
-    imagePosition: "center",
-  },
-] as const;
-
-export type Category = (typeof categories)[number];
-export type CategorySlug = Category["slug"];
-
-export type Product = {
+function mapCategory(row: {
   slug: string;
   name: string;
-  category: CategorySlug;
-  summary: string;
+  blurb: string;
   description: string;
-  details: readonly string[];
   image: string;
   imageAlt: string;
-  imagePosition: ImagePosition;
+  imagePosition: string;
+}): Category {
+  return {
+    slug: row.slug,
+    name: row.name,
+    blurb: row.blurb,
+    description: row.description,
+    image: row.image,
+    imageAlt: row.imageAlt,
+    imagePosition: asImagePosition(row.imagePosition),
+  };
+}
+
+function mapProduct(row: {
+  slug: string;
+  name: string;
+  categorySlug: string;
+  summary: string;
+  description: string;
+  details: unknown;
+  image: string;
+  imageAlt: string;
+  imagePosition: string;
   featured: boolean;
-};
-
-export const products: readonly Product[] = [
-  {
-    slug: "qanfa-velvet",
-    name: "قنفة مخمل",
-    category: "sofas",
-    summary: "جلسة ناعمة للصالة، والقماش واللون حسب اختيارك.",
-    description:
-      "قنفة بقماش مخمل للصالة. نحدد العرض وعدد المقاعد وارتفاع الظهر قبل القص، واللون من العينات الموجودة بالمعمل أو من صورة ترسلها.",
-    details: ["عدد المقاعد أو زاوية على ضلعين", "عرض القنفة وعمق القاعدة", "ارتفاع الظهر والذراعين", "لون المخمل وعدد المخاد"],
-    image: "/images/sofas.jpg",
-    imageAlt: "تفاصيل قنفة مخمل أخضر، صورة توضيحية للطراز",
-    imagePosition: "center",
-    featured: true,
-  },
-  {
-    slug: "qanfa-leather",
-    name: "قنفة جلد",
-    category: "sofas",
-    summary: "جلسة جلد للصالة أو المجلس.",
-    description:
-      "قنفة جلد. نوع الجلد واللون يتبينان قبل التنفيذ، والمقاس يتبع عرض الجدار حتى لا تزاحم الحركة في الغرفة.",
-    details: ["طول الجدار المتاح", "لون الجلد", "مع مخاد أو بدون", "ارتفاع الذراع المناسب للجلوس"],
-    image: "/images/sofa-loveseat.jpg",
-    imageAlt: "قنفة جلد بلون جملي، صورة توضيحية للطراز",
-    imagePosition: "bottom",
-    featured: false,
-  },
-  {
-    slug: "kursi-reception",
-    name: "كرسي استقبال",
-    category: "chairs",
-    summary: "كرسي منجد للضيوف أو زاوية الجلوس.",
-    description:
-      "كرسي مبطن للاستقبال. ارتفاع القاعدة والظهر يُضبط حتى يكون الجلوس مريحاً، والقماش يمكن أن يطابق قماش القنفة.",
-    details: ["العدد", "ارتفاع القاعدة", "شكل الظهر", "القماش واللون"],
-    image: "/images/chairs.jpg",
-    imageAlt: "كرسي استقبال منجد بأزرار، صورة توضيحية للطراز",
-    imagePosition: "center",
-    featured: true,
-  },
-  {
-    slug: "kursi-dining",
-    name: "كرسي سفرة",
-    category: "chairs",
-    summary: "كراسي خشب حول سفرة الطعام، بالعدد الذي تحتاجه.",
-    description:
-      "كراسي سفرة خشبية. العدد حسب الطاولة، والقعدة إما خشب ظاهر أو منجدة حتى لا يتعب الجلوس الطويل.",
-    details: ["عدد الكراسي", "ارتفاع السفرة", "خشب ظاهر أو قعدة منجدة", "اللون"],
-    image: "/images/chair-dining.jpg",
-    imageAlt: "كرسي سفرة خشبي، صورة توضيحية للطراز",
-    imagePosition: "center",
-    featured: false,
-  },
-  {
-    slug: "diwan",
-    name: "ديوان حسب الطلب",
-    category: "custom-divan",
-    summary: "ديوان بالمتر على الجدار، أو جلسة مجلس بالمساحة المتوفرة.",
-    description:
-      "الديوان يُفصَّل على طول الجدار أو على مساحة المجلس، مع مخاد الظهر والمساند. إذا عندك الطول بالمتر وصورة المكان، نرتب الشكل قبل التنفيذ.",
-    details: ["طول الجدار أو مساحة المجلس", "عمق الجلسة وارتفاعها", "عدد مخاد الظهر", "القماش واللون"],
-    image: "/images/divan-majlis.jpg",
-    imageAlt: "جلسة طويلة داخل غرفة، صورة توضيحية لطراز الديوان",
-    imagePosition: "center",
-    featured: true,
-  },
-  {
-    slug: "kursi-hadid",
-    name: "كرسي حديد",
-    category: "iron-chairs",
-    summary: "كرسي أو طقم بهيكل حديد للحديقة والجلسة الخارجية.",
-    description:
-      "هيكل حديد للاستخدام الخارجي أو الأماكن المكشوفة. نجهزه مفرداً أو طقماً بنفس القياس. لون الطلاء ونوع القاعدة، خشب أو تنجيد، يُتفق عليهما قبل الشغل.",
-    details: ["استخدام داخلي أو خارجي", "كرسي مفرد أو عدد الطقم", "لون الهيكل", "القاعدة خشب أو منجدة"],
-    image: "/images/wire-chairs.jpg",
-    imageAlt: "كراسي بهيكل معدني ملون، صورة توضيحية للطراز",
-    imagePosition: "bottom",
-    featured: true,
-  },
-  {
-    slug: "takhm",
-    name: "تخم قنفات",
-    category: "sofa-sets",
-    summary: "طقم الجلسة بقماش واحد، وعدد القطع حسب الغرفة.",
-    description:
-      "تخم القنفات يجمع القنفة مع الكراسي أو القطع المكملة. لا نثبت عدد القطع هنا، لأنه يتبع حجم الصالة حتى لا يزيد الطقم على المكان.",
-    details: ["مقاس الصالة", "عدد القطع", "قماش موحد", "توزيع القنفة والكراسي"],
-    image: "/images/sectional.jpg",
-    imageAlt: "قنفة وكرسي بقماش فاتح في غرفة جلوس، صورة توضيحية للطراز",
-    imagePosition: "center",
-    featured: true,
-  },
-];
-
-const categorySlugs = new Set<string>(categories.map((category) => category.slug));
-
-export function isCategorySlug(value: string): value is CategorySlug {
-  return categorySlugs.has(value);
+}): Product {
+  return {
+    slug: row.slug,
+    name: row.name,
+    category: row.categorySlug,
+    summary: row.summary,
+    description: row.description,
+    details: asStringDetails(row.details),
+    image: row.image,
+    imageAlt: row.imageAlt,
+    imagePosition: asImagePosition(row.imagePosition),
+    featured: row.featured,
+  };
 }
 
-export function getCategory(slug: string | undefined): Category | undefined {
+export const listCategories = cache(async (): Promise<Category[]> => {
+  try {
+    const rows = await prisma.category.findMany({ orderBy: { sortOrder: "asc" } });
+    if (rows.length === 0) return [...seedCategories];
+    return rows.map(mapCategory);
+  } catch {
+    return [...seedCategories];
+  }
+});
+
+export const listProducts = cache(async (): Promise<Product[]> => {
+  try {
+    const rows = await prisma.product.findMany({ orderBy: { sortOrder: "asc" } });
+    if (rows.length === 0) return [...seedProducts];
+    return rows.map(mapProduct);
+  } catch {
+    return [...seedProducts];
+  }
+});
+
+export async function getCategory(slug: string | undefined): Promise<Category | undefined> {
   if (!slug) return undefined;
-  return categories.find((category) => category.slug === slug);
+  try {
+    const row = await prisma.category.findUnique({ where: { slug } });
+    if (row) return mapCategory(row);
+  } catch {
+    /* fall through */
+  }
+  return seedCategories.find((category) => category.slug === slug);
 }
 
-export function getProduct(slug: string): Product | undefined {
-  return products.find((product) => product.slug === slug);
+export async function getProduct(slug: string): Promise<Product | undefined> {
+  try {
+    const row = await prisma.product.findUnique({ where: { slug } });
+    if (row) return mapProduct(row);
+  } catch {
+    /* fall through */
+  }
+  return seedProducts.find((product) => product.slug === slug);
 }
 
-export function filterProducts(slug: string | undefined): Product[] {
-  if (!slug) return [...products];
+export async function filterProducts(slug: string | undefined): Promise<Product[]> {
+  const products = await listProducts();
+  if (!slug) return products;
   return products.filter((product) => product.category === slug);
 }
 
-export function getFeaturedProducts(): Product[] {
+export async function getFeaturedProducts(): Promise<Product[]> {
+  const products = await listProducts();
   return products.filter((product) => product.featured);
 }
 
-export function relatedProducts(slug: string): Product[] {
-  const product = getProduct(slug);
+export async function relatedProducts(slug: string): Promise<Product[]> {
+  const product = await getProduct(slug);
   if (!product) return [];
+  const products = await listProducts();
   return products.filter((item) => item.category === product.category && item.slug !== slug).slice(0, 3);
+}
+
+export function isCategorySlug(value: string, categories: readonly Category[]): boolean {
+  return categories.some((category) => category.slug === value);
 }
 
 export function modelsLabel(count: number): string {
@@ -218,4 +141,9 @@ export const mosaicOrder = [
   "custom-divan",
   "chairs",
   "iron-chairs",
-] as const satisfies readonly CategorySlug[];
+] as const;
+
+/** @deprecated Use listCategories / listProducts — kept for tests against seed data */
+export const categories = seedCategories;
+/** @deprecated Use listProducts — kept for tests against seed data */
+export const products = seedProducts;

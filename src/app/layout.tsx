@@ -1,12 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Amiri, Tajawal } from "next/font/google";
+import { AppChrome } from "@/components/AppChrome";
 import { JsonLd } from "@/components/JsonLd";
 import { MetaPixel } from "@/components/MetaPixel";
-import { SiteFooter } from "@/components/SiteFooter";
-import { SiteHeader } from "@/components/SiteHeader";
-import { WhatsAppFloat } from "@/components/WhatsAppFloat";
+import { listCategories } from "@/lib/products";
 import { localBusinessSchema } from "@/lib/schema";
-import { site, siteUrl } from "@/lib/site";
+import { getContactSettings, siteBrand, siteUrl } from "@/lib/site";
 import "./globals.css";
 
 const amiri = Amiri({
@@ -35,14 +34,14 @@ export const metadata: Metadata = {
     default: "رويال هاوس | قنفات وكراسي وديوان في كربلاء",
     template: "%s | رويال هاوس",
   },
-  description: site.description,
-  applicationName: site.name,
+  description: siteBrand.description,
+  applicationName: siteBrand.name,
   openGraph: {
     type: "website",
     locale: "ar_IQ",
-    siteName: site.name,
+    siteName: siteBrand.name,
     title: "رويال هاوس | قنفات وكراسي وديوان في كربلاء",
-    description: site.description,
+    description: siteBrand.description,
     images: [
       {
         url: "/images/hero.jpg",
@@ -55,25 +54,22 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "رويال هاوس | قنفات وكراسي وديوان في كربلاء",
-    description: site.description,
+    description: siteBrand.description,
     images: ["/images/hero.jpg"],
   },
   robots: { index: true, follow: true },
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const [contact, categories] = await Promise.all([getContactSettings(), listCategories()]);
+
   return (
     <html lang="ar" dir="rtl" data-scroll-behavior="smooth" className={`${amiri.variable} ${tajawal.variable}`}>
       <body className="bg-ivory font-sans text-ink antialiased">
         <MetaPixel />
-        <a href="#content" className="skip-link">
-          تخطي إلى المحتوى
-        </a>
-        <SiteHeader />
-        <main id="content">{children}</main>
-        <SiteFooter />
-        <WhatsAppFloat />
-        <JsonLd data={localBusinessSchema()} />
+        <AppChrome contact={contact} jsonLd={<JsonLd data={localBusinessSchema(categories, contact)} />}>
+          {children}
+        </AppChrome>
       </body>
     </html>
   );

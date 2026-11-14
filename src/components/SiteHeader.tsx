@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { primaryButtonClass } from "@/components/styles";
-import { generalInquiry, navLinks, site } from "@/lib/site";
+import type { ContactSettings } from "@/lib/catalog-types";
+import { generalInquiry, navLinks } from "@/lib/site";
 import { whatsappHref } from "@/lib/whatsapp";
 
 function isActive(pathname: string, href: string): boolean {
@@ -12,7 +13,7 @@ function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function SiteHeader() {
+export function SiteHeader({ contact }: { contact: ContactSettings }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -29,9 +30,9 @@ export function SiteHeader() {
     <div className="sticky top-0 z-50">
       <div className="bg-wood text-sand">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-2 text-xs">
-          <p className="hidden sm:block">{site.addressLine}</p>
-          <a href={site.phoneHref} dir="ltr" className="inline-flex min-h-11 items-center font-medium text-paper">
-            {site.phoneDisplay}
+          <p className="hidden sm:block">{contact.addressLine}</p>
+          <a href={contact.phoneHref} dir="ltr" className="inline-flex min-h-11 items-center font-medium text-paper">
+            {contact.phoneDisplay}
           </a>
         </div>
       </div>
@@ -73,7 +74,7 @@ export function SiteHeader() {
 
           <div className="hidden md:block">
             <a
-              href={whatsappHref(generalInquiry)}
+              href={whatsappHref(generalInquiry, contact.whatsappNumber)}
               target="_blank"
               rel="noopener noreferrer"
               className={primaryButtonClass}
@@ -117,7 +118,7 @@ export function SiteHeader() {
               })}
               <li>
                 <a
-                  href={whatsappHref(generalInquiry)}
+                  href={whatsappHref(generalInquiry, contact.whatsappNumber)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex min-h-11 items-center text-base font-medium text-burgundy"

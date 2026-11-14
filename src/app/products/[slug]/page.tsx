@@ -7,24 +7,25 @@ import { ProductCard } from "@/components/ProductCard";
 import { Container } from "@/components/Section";
 import { primaryButtonClass, secondaryButtonClass } from "@/components/styles";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
-import { getCategory, getProduct, imagePositionClass, products, relatedProducts } from "@/lib/products";
+import { getCategory, getProduct, imagePositionClass, listProducts, relatedProducts } from "@/lib/products";
 import { productSchema } from "@/lib/schema";
-import { imageNote, priceNote, site } from "@/lib/site";
+import { getContactSettings, imageNote, priceNote } from "@/lib/site";
 import { productInquiryMessage } from "@/lib/whatsapp";
 
 type ProductPageProps = {
   params: Promise<{ slug: string }>;
 };
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  const products = await listProducts();
   return products.map((product) => ({ slug: product.slug }));
 }
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = getProduct(slug);
+  const product = await getProduct(slug);
   if (!product) return { title: "النموذج غير موجود" };
-  const category = getCategory(product.category);
+  const category = await getCategory(product.category);
 
   return {
     title: product.name,
@@ -38,15 +39,18 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
-  const product = getProduct(slug);
+  const product = await getProduct(slug);
   if (!product) notFound();
 
-  const category = getCategory(product.category);
-  const related = relatedProducts(product.slug);
+  const [category, related, contact] = await Promise.all([
+    getCategory(product.category),
+    relatedProducts(product.slug),
+    getContactSettings(),
+  ]);
 
   return (
     <Container className="py-10 md:py-14">
-      <JsonLd data={productSchema(product)} />
+      <JsonLd data={productSchema(product, category?.name)} />
       <nav aria-label="مسار الصفحة" className="text-sm text-muted">
         <ol className="flex flex-wrap items-center gap-2">
           <li>
@@ -111,13 +115,17 @@ export default async function ProductPage({ params }: ProductPageProps) {
           <p className="mt-4 text-sm leading-7 text-muted">{imageNote}</p>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <WhatsAppLink message={productInquiryMessage(product.name)} className={primaryButtonClass}>
+            <WhatsAppLink
+              message={productInquiryMessage(product.name)}
+              whatsappNumber={contact.whatsappNumber}
+              className={primaryButtonClass}
+            >
               اطلب هذا الموديل على واتساب
             </WhatsAppLink>
             <Link href={`/custom?item=${product.slug}`} className={secondaryButtonClass}>
               أرسل المقاس
             </Link>
-            <a href={site.phoneHref} className={secondaryButtonClass}>
+            <a href={contact.phoneHref} className={secondaryButtonClass}>
               اتصال بالمعمل
             </a>
           </div>
@@ -132,7 +140,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           <ul className="mt-6 grid gap-4 sm:grid-cols-2">
             {related.map((item) => (
               <li key={item.slug}>
-                <ProductCard product={item} />
+                <ProductCard product={item} categoryName={category?.name} />
               </li>
             ))}
           </ul>

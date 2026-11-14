@@ -3,8 +3,8 @@ import Link from "next/link";
 import { PageHero } from "@/components/PageHero";
 import { Container } from "@/components/Section";
 import { primaryButtonClass, secondaryButtonClass } from "@/components/styles";
-import { categories } from "@/lib/products";
-import { mapsSearchUrl, site } from "@/lib/site";
+import { listCategories } from "@/lib/products";
+import { getContactSettings, mapsSearchUrlFrom } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "المعمل",
@@ -12,7 +12,9 @@ export const metadata: Metadata = {
   alternates: { canonical: "/about" },
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const [categories, contact] = await Promise.all([listCategories(), getContactSettings()]);
+
   return (
     <>
       <PageHero
@@ -45,11 +47,16 @@ export default function AboutPage() {
             ))}
           </ul>
           <div className="mt-6 flex flex-wrap gap-3">
-            <a href={site.phoneHref} className={primaryButtonClass}>
+            <a href={contact.phoneHref} className={primaryButtonClass}>
               <span>اتصال</span>
-              <span dir="ltr">{site.phoneDisplay}</span>
+              <span dir="ltr">{contact.phoneDisplay}</span>
             </a>
-            <a href={mapsSearchUrl} target="_blank" rel="noopener noreferrer" className={secondaryButtonClass}>
+            <a
+              href={mapsSearchUrlFrom(contact.mapsQuery)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={secondaryButtonClass}
+            >
               عنوان المعمل
             </a>
           </div>

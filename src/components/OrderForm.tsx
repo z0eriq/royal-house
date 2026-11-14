@@ -20,9 +20,11 @@ const fieldClass = "mt-2 w-full border border-line bg-ivory px-3 py-3 text-base 
 export function OrderForm({
   groups,
   defaultItem,
+  whatsappNumber,
 }: {
   groups: readonly OrderOptionGroup[];
   defaultItem: string;
+  whatsappNumber?: string;
 }) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -59,6 +61,7 @@ export function OrderForm({
         material,
         notes,
       }),
+      whatsappNumber,
     );
     setFallbackHref(href);
     const opened = window.open(href, "_blank", "noopener,noreferrer");

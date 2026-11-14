@@ -3,7 +3,7 @@ import { PageHero } from "@/components/PageHero";
 import { Container } from "@/components/Section";
 import { primaryButtonClass, secondaryButtonClass } from "@/components/styles";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
-import { generalInquiry, mapsEmbedUrl, mapsSearchUrl, site } from "@/lib/site";
+import { generalInquiry, getContactSettings, mapsEmbedUrlFrom, mapsSearchUrlFrom } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "الموقع والتواصل",
@@ -11,7 +11,9 @@ export const metadata: Metadata = {
   alternates: { canonical: "/contact" },
 };
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const contact = await getContactSettings();
+
   return (
     <>
       <PageHero
@@ -24,27 +26,36 @@ export default function ContactPage() {
           <address className="not-italic">
             <p className="text-sm font-medium text-copper-deep">العنوان</p>
             <p className="mt-3 font-display text-4xl leading-snug">
-              {site.city}، {site.area}
+              {contact.city}، {contact.area}
             </p>
-            <p className="mt-3 text-lg leading-8">{site.street}</p>
+            <p className="mt-3 text-lg leading-8">{contact.street}</p>
           </address>
           <div className="mt-8 space-y-2">
             <p className="text-sm text-muted">من داخل العراق</p>
-            <a href={site.phoneHref} dir="ltr" className="inline-flex font-display text-3xl text-ink">
-              {site.phoneDisplay}
+            <a href={contact.phoneHref} dir="ltr" className="inline-flex font-display text-3xl text-ink">
+              {contact.phoneDisplay}
             </a>
             <p dir="ltr" className="text-sm text-muted">
-              {site.phoneInternational}
+              {contact.phoneInternational}
             </p>
           </div>
           <div className="mt-8 flex flex-wrap gap-3">
-            <WhatsAppLink message={generalInquiry} className={primaryButtonClass}>
+            <WhatsAppLink
+              message={generalInquiry}
+              whatsappNumber={contact.whatsappNumber}
+              className={primaryButtonClass}
+            >
               واتساب
             </WhatsAppLink>
-            <a href={site.phoneHref} className={secondaryButtonClass}>
+            <a href={contact.phoneHref} className={secondaryButtonClass}>
               اتصال
             </a>
-            <a href={mapsSearchUrl} target="_blank" rel="noopener noreferrer" className={secondaryButtonClass}>
+            <a
+              href={mapsSearchUrlFrom(contact.mapsQuery)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={secondaryButtonClass}
+            >
               خرائط جوجل
             </a>
           </div>
@@ -53,7 +64,7 @@ export default function ContactPage() {
           <div className="overflow-hidden border border-line bg-sand">
             <iframe
               title="خريطة البحث عن رويال هاوس في طويرج"
-              src={mapsEmbedUrl}
+              src={mapsEmbedUrlFrom(contact.mapsQuery)}
               className="h-80 w-full"
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"

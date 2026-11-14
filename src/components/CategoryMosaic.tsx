@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getCategory, imagePositionClass, mosaicOrder } from "@/lib/products";
+import type { Category } from "@/lib/catalog-types";
+import { imagePositionClass, mosaicOrder } from "@/lib/products";
 
 const areaClass: Record<(typeof mosaicOrder)[number], string> = {
   sofas: "area-sofas",
@@ -10,13 +11,16 @@ const areaClass: Record<(typeof mosaicOrder)[number], string> = {
   "iron-chairs": "area-iron",
 };
 
-export function CategoryMosaic() {
-  const ordered = mosaicOrder.map((slug) => getCategory(slug)).filter((category) => category !== undefined);
+export function CategoryMosaic({ categories }: { categories: readonly Category[] }) {
+  const bySlug = new Map(categories.map((category) => [category.slug, category]));
+  const ordered = mosaicOrder
+    .map((slug) => bySlug.get(slug))
+    .filter((category): category is Category => Boolean(category));
 
   return (
     <ul className="category-mosaic">
       {ordered.map((category) => (
-        <li key={category.slug} className={areaClass[category.slug]}>
+        <li key={category.slug} className={areaClass[category.slug as (typeof mosaicOrder)[number]] ?? ""}>
           <Link
             href={`/products?category=${category.slug}`}
             className="group relative flex min-h-[250px] flex-col justify-end bg-wood text-paper md:h-full md:min-h-[230px]"
